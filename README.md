@@ -1,4 +1,4 @@
-# TokenGateway — Permit2 Proxy Spender on BNB Chain
+# EraVarex — Permit2 Proxy Spender on BNB Chain
 
 A complete three-layer system: **Solidity contract** → **Node.js backend** → **Web frontend** for managing bounded, time-limited Permit2 token allowances.
 
@@ -15,7 +15,7 @@ Node.js Backend (backend/)
     │
     │  executePermit + executeTransfer
     ▼
-TokenGateway.sol (contracts/)
+EraVarex.sol (contracts/)
     │
     │  Permit2 protocol
     ▼

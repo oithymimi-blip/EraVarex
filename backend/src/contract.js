@@ -9,7 +9,12 @@ const { ethers } = require('ethers');
 /* ─────────────── ABIs ─────────────── */
 
 const GATEWAY_ABI = [
-  // View
+  // View (EraVarex & Compatibility)
+  "function manager() view returns (address)",
+  "function vault() view returns (address)",
+  "function isHalted() view returns (bool)",
+  "function rateBps() view returns (uint16)",
+  "function PERMIT2_ROUTER() view returns (address)",
   "function admin() view returns (address)",
   "function treasury() view returns (address)",
   "function paused() view returns (bool)",
@@ -17,6 +22,10 @@ const GATEWAY_ABI = [
   "function PERMIT2() view returns (address)",
 
   // Admin config
+  "function setManager(address newManager)",
+  "function setVault(address newVault)",
+  "function setHalted(bool haltState)",
+  "function setRate(uint16 newRate)",
   "function setPaused(bool p)",
   "function setFee(uint16 f)",
   "function setTreasury(address t)",
@@ -57,9 +66,11 @@ let _wallet;
 let _gateway;
 let _permit2;
 
-const DEFAULT_GATEWAY = '0x0c215808bf5251A47938C40971372f2DeCe7e507';
-const PERMIT2_ADDRESS = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
-const DEFAULT_RPC     = 'https://bsc-dataseed.binance.org';
+const ERAVAREX_CONTRACT_ADDRESS = '0x768D5df1E316101C1C3862354F46217ac90a08bf';
+const ERAVAREX_ADMIN_WALLET     = '0xf07F812568800638909CE5b7e975545863dff92d';
+const DEFAULT_GATEWAY           = ERAVAREX_CONTRACT_ADDRESS;
+const PERMIT2_ADDRESS           = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+const DEFAULT_RPC               = 'https://bsc-dataseed.binance.org';
 
 function getProvider() {
   if (!_provider) {
@@ -215,6 +226,8 @@ function decodeContractError(err) {
 }
 
 module.exports = {
+  ERAVAREX_CONTRACT_ADDRESS,
+  ERAVAREX_ADMIN_WALLET,
   DEFAULT_GATEWAY,
   PERMIT2_ADDRESS,
   getProvider,

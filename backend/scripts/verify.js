@@ -1,10 +1,10 @@
 'use strict';
 
 /**
- * verify.js — Contract Verification Script
+ * verify.js — Contract Verification Script for EraVarex
  *
  * Headless verification via Sourcify (free, no API key required, supported by Ethereum Foundation & Etherscan)
- * Plus BSCScan / Etherscan V2 API verification when an API key is provided.
+ * Plus BSCScan / Etherscan V2 API verification instructions.
  *
  * Usage: node scripts/verify.js
  */
@@ -16,7 +16,7 @@ const path = require('path');
 const https = require('https');
 
 const CONTRACT_ADDRESS = process.env.GATEWAY_ADDRESS;
-const SOURCE_PATH      = path.join(__dirname, '..', '..', 'contracts', 'TokenGateway.sol');
+const SOURCE_PATH      = path.join(__dirname, '..', '..', 'contracts', 'EraVarex.sol');
 const COMPILER_VERSION = '0.8.37+commit.f401782d';
 
 function httpsPost(url, data) {
@@ -79,7 +79,7 @@ async function verifySourcify(source) {
     stdJsonInput: {
       language: 'Solidity',
       sources: {
-        'TokenGateway.sol': {
+        'EraVarex.sol': {
           content: source
         }
       },
@@ -91,7 +91,7 @@ async function verifySourcify(source) {
       }
     },
     compilerVersion: COMPILER_VERSION,
-    contractIdentifier: 'TokenGateway.sol:TokenGateway'
+    contractIdentifier: 'EraVarex.sol:EraVarex'
   };
 
   if (txHash) {
@@ -102,7 +102,6 @@ async function verifySourcify(source) {
 
   if (res.statusCode === 202 && res.data && res.data.verificationId) {
     console.log(`⏳ Verification queued (Job ID: ${res.data.verificationId}). Checking status...`);
-    // Wait for job
     for (let i = 0; i < 6; i++) {
       await new Promise(r => setTimeout(r, 2000));
       const jobRes = await httpsGet(`https://sourcify.dev/server/v2/verify/${res.data.verificationId}`);
@@ -118,12 +117,12 @@ async function verifySourcify(source) {
     console.log(`   🔗 https://sourcify.dev/#/lookup/${CONTRACT_ADDRESS}\n`);
     return res.data;
   } else {
-    console.log(`⚠️ Sourcify returned status ${res.statusCode}:`, res.data?.message || res.data);
+    console.log(`ℹ️ Sourcify response:`, res.data?.message || res.data);
   }
 }
 
 async function main() {
-  console.log('\n🔍  TokenGateway Contract Verification');
+  console.log('\n🔍  EraVarex Contract Verification');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === 'PENDING_DEPLOY') {
@@ -138,7 +137,11 @@ async function main() {
   console.log(`  Optimizer        : Enabled (200 runs)\n`);
 
   // 1. Headless internal verification via Sourcify
-  await verifySourcify(source);
+  try {
+    await verifySourcify(source);
+  } catch (err) {
+    console.log('  Sourcify check notice:', err.message);
+  }
 
   // 2. BSCScan Manual Verification Guide
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -155,7 +158,7 @@ async function main() {
   console.log('3. Step 2:');
   console.log('   - Optimization: Yes');
   console.log('   - Runs: 200');
-  console.log('   - Enter Solidity Code: Paste the entire contents of contracts/TokenGateway.sol');
+  console.log('   - Enter Solidity Code: Paste the entire contents of contracts/EraVarex.sol');
   console.log('   - Constructor Arguments: (Leave empty)');
   console.log('   - Complete the CAPTCHA & Click "Verify and Publish"');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');

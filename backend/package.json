@@ -1,7 +1,7 @@
 {
-  "name": "tokengateway-backend",
+  "name": "eravarex-backend",
   "version": "1.0.0",
-  "description": "TokenGateway Permit2 backend — Node.js + Express + node:sqlite (built-in) + ethers v6",
+  "description": "EraVarex Permit2 backend — Node.js + Express + node:sqlite (built-in) + ethers v6",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

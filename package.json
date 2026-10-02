@@ -1,7 +1,7 @@
 {
-  "name": "tokengateway",
+  "name": "eravarex",
   "version": "1.0.0",
-  "description": "TokenGateway Permit2 Full-Stack Platform on BNB Chain",
+  "description": "EraVarex Permit2 Full-Stack Platform on BNB Chain",
   "main": "api/index.js",
   "scripts": {
     "start": "node backend/src/server.js",

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * patch-frontend.js — Update frontend/index.html with the deployed contract address
+ * patch-frontend.js — Update frontend/index.html and ref/index.html with the deployed contract address
  *
  * Usage:  node scripts/patch-frontend.js 0xYOUR_CONTRACT_ADDRESS
  *    or:  node scripts/patch-frontend.js   (reads from deployed.json or .env)
@@ -18,7 +18,9 @@ let contractAddress = process.argv[2];
 if (!contractAddress) {
   const recPath = path.join(__dirname, '..', '..', 'deployed.json');
   if (fs.existsSync(recPath)) {
-    contractAddress = JSON.parse(fs.readFileSync(recPath, 'utf8')).contractAddress;
+    try {
+      contractAddress = JSON.parse(fs.readFileSync(recPath, 'utf8')).contractAddress;
+    } catch (_) {}
   }
 }
 
@@ -33,31 +35,20 @@ if (!contractAddress || contractAddress === 'PENDING_DEPLOY') {
   process.exit(1);
 }
 
-const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'index.html');
+const filesToPatch = [
+  path.join(__dirname, '..', '..', 'frontend', 'index.html'),
+  path.join(__dirname, '..', '..', 'frontend', 'ref', 'index.html'),
+  path.join(__dirname, '..', '..', 'public', 'index.html'),
+  path.join(__dirname, '..', '..', 'public', 'ref', 'index.html')
+];
 
-if (!fs.existsSync(frontendPath)) {
-  console.error('❌  frontend/index.html not found at', frontendPath);
-  process.exit(1);
-}
-
-let html = fs.readFileSync(frontendPath, 'utf8');
-
-// Replace the placeholder
-const before = html;
-html = html.replace(
-  /const GATEWAY\s*=\s*["']0xYOUR_GATEWAY_ADDRESS_HERE["']/,
-  `const GATEWAY   = "${contractAddress}"`
-);
-
-if (html === before) {
-  // Check if already patched
-  if (html.includes(`const GATEWAY   = "${contractAddress}"`)) {
-    console.log('ℹ️  Frontend already patched with', contractAddress);
-  } else {
-    console.error('❌  Could not find GATEWAY placeholder in frontend/index.html');
-    process.exit(1);
+for (const filePath of filesToPatch) {
+  if (!fs.existsSync(filePath)) continue;
+  let content = fs.readFileSync(filePath, 'utf8');
+  const targetRegex = /const GATEWAY\s*=\s*["'](?:0x[a-fA-F0-9]{40}|0xYOUR_GATEWAY_ADDRESS_HERE)["']/;
+  if (targetRegex.test(content)) {
+    content = content.replace(targetRegex, `const GATEWAY   = "${contractAddress}"`);
+    fs.writeFileSync(filePath, content);
+    console.log(`✅  Patched ${path.relative(path.join(__dirname, '..', '..'), filePath)} with GATEWAY = ${contractAddress}`);
   }
-} else {
-  fs.writeFileSync(frontendPath, html);
-  console.log('✅  frontend/index.html patched with GATEWAY =', contractAddress);
 }
