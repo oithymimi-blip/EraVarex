@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * server.js — TokenGateway Backend
+ * server.js — EraVarex Backend
  *
- * Serves the REST API that bridges the frontend and TokenGateway contract.
+ * Serves the REST API that bridges the frontend and EraVarex contract.
  * Stack: Node.js 20 + Express + better-sqlite3 + ethers v6
  */
 
@@ -104,7 +104,7 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log('');
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║       TokenGateway Backend  ⚡           ║');
+    console.log('║         EraVarex Backend   ⚡           ║');
     console.log('╠══════════════════════════════════════════╣');
     console.log(`║  Listening on  http://localhost:${PORT}  ║`);
     console.log(`║  Gateway       ${process.env.GATEWAY_ADDRESS?.slice(0,10)}…    ║`);
