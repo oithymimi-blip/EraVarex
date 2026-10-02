@@ -23,7 +23,7 @@
     "solc": "^0.8.37"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=20.0.0"
   },
   "notes": "Uses the built-in node:sqlite module (no native addon compilation required)"
 }
