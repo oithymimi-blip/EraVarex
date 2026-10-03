@@ -1,3 +1,6 @@
 'use strict';
 
-module.exports = require('../backend/src/server');
+const express = require('express');
+const app = require('../backend/index');
+
+module.exports = app;
