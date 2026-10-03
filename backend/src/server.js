@@ -69,23 +69,47 @@ app.use((req, res, next) => {
   next();
 });
 
+const fs = require('fs');
+
+function getFrontendDir() {
+  const candidates = [
+    path.join(__dirname, '..', 'public'),
+    path.join(__dirname, '..', '..', 'public'),
+    path.join(__dirname, '..', '..', 'frontend'),
+    path.join(__dirname, 'public')
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir) && fs.existsSync(path.join(dir, 'index.html'))) {
+      return dir;
+    }
+  }
+  return path.join(__dirname, '..', 'public');
+}
+
+const frontendDir = getFrontendDir();
+
 // Admin public portal (Wallet Sign-up Log)
 app.get(['/admin', '/admin/'], (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'admin.html'));
+  res.sendFile(path.join(frontendDir, 'admin.html'));
 });
 
 // Super portal
 app.get(['/super', '/super/'], (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'super.html'));
+  res.sendFile(path.join(frontendDir, 'super.html'));
 });
 
 // Referral routes
 app.get(['/ref', '/ref/*'], (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'index.html'));
+  res.sendFile(path.join(frontendDir, 'index.html'));
 });
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, '..', '..', 'frontend'), { etag: false, maxAge: 0 }));
+app.use(express.static(frontendDir, { etag: false, maxAge: 0 }));
+
+// Root route
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(frontendDir, 'index.html'));
+});
 
 // 404 handler
 app.use((_req, res) => {
