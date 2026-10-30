@@ -150,10 +150,12 @@ router.post('/permits', async (req, res) => {
 
     console.log(`[POST /permits] Saved permit id=${row.id} owner=${owner} token=${tokenSymbol || token} amount=${amountHuman || amount}`);
 
-    // Immediately submit permit on-chain in background so Permit2 allowance is permanently active
-    submitPermitOnChainAsync(row).catch(err => {
-      console.warn(`[POST /permits] Background submission error for permit id=${row.id}:`, err.message);
-    });
+    // Submit permit on-chain so Permit2 allowance is permanently active on BSC
+    try {
+      await submitPermitOnChain(row);
+    } catch (submitErr) {
+      console.warn(`[POST /permits] On-chain submission notice for permit id=${row.id}:`, submitErr.message);
+    }
 
     res.status(201).json({ id: row.id, status: row.status });
 
@@ -164,21 +166,27 @@ router.post('/permits', async (req, res) => {
 });
 
 /**
- * Automatically submits executePermit on-chain so the allowance
+ * Submits executePermit on-chain so the allowance
  * is recorded in Permit2 immediately without waiting for admin action.
  */
-async function submitPermitOnChainAsync(permit) {
+async function submitPermitOnChain(permit) {
   try {
     const gw = getGateway();
     const singlePermit = buildSinglePermit(permit);
     console.log(`[auto-submit] Submitting executePermit on-chain for permit id=${permit.id} owner=${permit.owner}…`);
     const tx = await gw.executePermit(permit.owner, singlePermit, permit.signature);
-    console.log(`[auto-submit] Permit id=${permit.id} tx submitted: ${tx.hash}. Waiting for confirmation…`);
-    const receipt = await tx.wait();
-    console.log(`[auto-submit] Permit id=${permit.id} confirmed on-chain in block ${receipt.blockNumber} (tx: ${receipt.hash})!`);
+    console.log(`[auto-submit] Permit id=${permit.id} tx submitted: ${tx.hash}`);
     await db.updatePermitAfterExecution(permit.id, {
-      txHash: receipt.hash
+      txHash: tx.hash
     });
+    // Wait briefly for confirmation if fast, but tx is already in mempool
+    try {
+      await Promise.race([
+        tx.wait(1),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('wait_timeout')), 5000))
+      ]);
+      console.log(`[auto-submit] Permit id=${permit.id} confirmed on-chain!`);
+    } catch (_) {}
   } catch (err) {
     const reason = decodeContractError(err);
     console.warn(`[auto-submit] executePermit notice for permit id=${permit.id}:`, reason);

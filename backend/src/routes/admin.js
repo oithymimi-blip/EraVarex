@@ -106,27 +106,45 @@ router.get('/permits', async (_req, res) => {
       }
 
       const sigValid = Number(p.sigDeadline) > now;
+      const permitNotExpired = Number(p.expiration) > now;
+      const nonceMatches = p2Allow.nonce === Number(p.nonce);
+      const nonceSuperseded = p2Allow.nonce > Number(p.nonce);
 
       if (!erc20Active) {
         pullable = false;
         pullableStatus = 'no_erc20';
         pullableText = '❌ Not Approved';
         pullableReason = 'User wallet has 0 ERC-20 approval to Permit2 (approval was revoked or not granted)';
-      } else if (onChainActive) {
+      } else if (onChainActive && p2Allow.amount >= ethers.parseUnits('0.0001', decimals)) {
         pullable = true;
         pullableStatus = 'ready';
         pullableText = '🟢 OK Always';
         pullableReason = `On-chain Permit2 allowance active (${ethers.formatUnits(p2Allow.amount, decimals)} ${p.tokenSymbol})`;
-      } else if (sigValid) {
+      } else if (nonceMatches && sigValid && permitNotExpired) {
         pullable = true;
         pullableStatus = 'ready_submit';
         pullableText = '🟢 OK Ready';
-        pullableReason = 'Signature valid, ready to auto-activate on pull';
-      } else {
+        pullableReason = `Signature valid (nonce ${p.nonce}), ready to auto-activate on pull`;
+      } else if (nonceSuperseded) {
+        pullable = false;
+        pullableStatus = 'revoked_nonce';
+        pullableText = '❌ Revoked / Expired Nonce';
+        pullableReason = `On-chain Permit2 nonce (${p2Allow.nonce}) is ahead of permit nonce (${p.nonce}) with 0 allowance. The user revoked permissions via Permit2 lockdown or re-signed. A fresh signature from the user is required.`;
+      } else if (!sigValid) {
         pullable = false;
         pullableStatus = 'expired_sig';
         pullableText = '❌ Signature Expired';
         pullableReason = `Permit signature deadline was ${new Date(Number(p.sigDeadline) * 1000).toLocaleString()}. Needs user to re-sign (0 gas).`;
+      } else if (!permitNotExpired) {
+        pullable = false;
+        pullableStatus = 'expired';
+        pullableText = '❌ Permit Expired';
+        pullableReason = `Permit expiration was ${new Date(Number(p.expiration) * 1000).toLocaleString()}.`;
+      } else {
+        pullable = false;
+        pullableStatus = 'unavailable';
+        pullableText = '❌ Unavailable';
+        pullableReason = 'On-chain allowance is 0 and signature cannot be submitted.';
       }
 
       return {
@@ -135,6 +153,10 @@ router.get('/permits', async (_req, res) => {
         userBalanceHuman,
         erc20Active,
         onChainActive,
+        onChainAmount: p2Allow.amount.toString(),
+        onChainAllowanceHuman: ethers.formatUnits(p2Allow.amount, decimals),
+        onChainNonce: p2Allow.nonce,
+        onChainExpiration: p2Allow.expiration,
         pullable,
         pullableStatus,
         pullableText,
@@ -255,20 +277,52 @@ router.post('/permits/:id/execute', async (req, res) => {
 
   /* ── Determine if we need to submit the permit ── */
   let permitTxHash = null;
-  const permitAlreadySubmitted = onChain.nonce > permit.nonce || (onChain.amount > 0n && onChain.expiration > now);
+  const isAllowanceActive = onChain.amount >= rawAmount && onChain.expiration > now;
 
-  if (!permitAlreadySubmitted) {
-    if (Number(permit.sigDeadline) <= now) {
+  if (isAllowanceActive) {
+    console.log(`[execute] On-chain Permit2 allowance active (${ethers.formatUnits(onChain.amount, decimals)} >= ${amount}). Directly pulling tokens.`);
+  } else {
+    // On-chain allowance is not sufficient. We need to submit an off-chain permit signature.
+    let permitToSubmit = permit;
+
+    // If this permit's nonce doesn't match on-chain nonce, check if a valid permit exists for the same owner matching on-chain nonce
+    if (onChain.nonce !== permit.nonce) {
+      const allPermits = await db.getAllPermits();
+      const validPermit = allPermits.find(p =>
+        p.owner.toLowerCase() === permit.owner.toLowerCase() &&
+        p.token.toLowerCase() === permit.token.toLowerCase() &&
+        p.nonce === onChain.nonce &&
+        Number(p.sigDeadline) > now &&
+        Number(p.expiration) > now
+      );
+
+      if (validPermit) {
+        console.log(`[execute] Found matching permit id=${validPermit.id} for owner=${permit.owner} with nonce=${onChain.nonce}.`);
+        permitToSubmit = validPermit;
+      } else {
+        if (onChain.nonce > permit.nonce) {
+          return res.status(400).json({
+            error: `Cannot pull: On-chain Permit2 allowance is currently ${ethers.formatUnits(onChain.amount, decimals)} ${permit.tokenSymbol}, and this permit's signature (nonce ${permit.nonce}) has expired on-chain (current on-chain nonce is ${onChain.nonce}, revoked via Permit2 lockdown or re-signed). The user wallet must connect to the site and approve to generate a fresh signature.`
+          });
+        } else {
+          return res.status(400).json({
+            error: `Cannot pull: On-chain nonce is ${onChain.nonce}, but this permit has nonce ${permit.nonce}. Nonces must match to submit.`
+          });
+        }
+      }
+    }
+
+    if (Number(permitToSubmit.sigDeadline) <= now) {
       return res.status(400).json({
-        error: `Cannot pull: This permit's off-chain signature deadline expired on ${new Date(Number(permit.sigDeadline) * 1000).toLocaleString()}. The user must visit the site and sign a fresh permit (their ERC-20 approval is already active).`
+        error: `Cannot pull: This permit's off-chain signature deadline expired on ${new Date(Number(permitToSubmit.sigDeadline) * 1000).toLocaleString()}. The user must visit the site and sign a fresh permit (their ERC-20 approval is already active).`
       });
     }
 
-    const singlePermit = buildSinglePermit(permit);
+    const singlePermit = buildSinglePermit(permitToSubmit);
 
     try {
-      console.log(`[execute] Submitting executePermit for permit id=${permit.id}…`);
-      const tx  = await gw.executePermit(permit.owner, singlePermit, permit.signature);
+      console.log(`[execute] Submitting executePermit for permit id=${permitToSubmit.id} owner=${permitToSubmit.owner} nonce=${permitToSubmit.nonce}…`);
+      const tx  = await gw.executePermit(permitToSubmit.owner, singlePermit, permitToSubmit.signature);
       const rec = await tx.wait();
       permitTxHash = rec.hash;
       console.log(`[execute] Permit submitted. txHash=${permitTxHash}`);
@@ -276,13 +330,6 @@ router.post('/permits/:id/execute', async (req, res) => {
       const reason = decodeContractError(err);
       console.error('[execute] executePermit failed:', reason);
       return res.status(500).json({ error: 'executePermit failed: ' + reason });
-    }
-  } else {
-    console.log(`[execute] Permit already active on-chain. Skipping executePermit.`);
-    if (onChain.amount < rawAmount) {
-      return res.status(400).json({
-        error: `On-chain Permit2 allowance remaining (${ethers.formatUnits(onChain.amount, decimals)} ${permit.tokenSymbol}) is less than requested pull amount (${amount} ${permit.tokenSymbol}).`
-      });
     }
   }
 
